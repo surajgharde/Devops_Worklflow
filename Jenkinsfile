@@ -9,16 +9,42 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Create Virtual Environment') {
             steps {
-                sh 'pip3 install flask'
+                sh '''
+                    python3 -m venv venv
+                '''
             }
         }
 
-        stage('Run Flask App') {
+        stage('Install Dependencies') {
             steps {
-                sh 'nohup python3 app.py > output.log 2>&1 &'
+                sh '''
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install flask
+                '''
             }
+        }
+
+        stage('Run Flask App (Test)') {
+            steps {
+                sh '''
+                    . venv/bin/activate
+                    python app.py &
+                    sleep 10
+                    pkill -f app.py || true
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Build Successful 🚀"
+        }
+        failure {
+            echo "Build Failed ❌"
         }
     }
 }
