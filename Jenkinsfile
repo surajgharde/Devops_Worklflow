@@ -3,30 +3,21 @@ pipeline {
 
     stages {
 
-        stage('Build Docker Image') {
+        stage('Checkout Code') {
             steps {
-                sh 'docker build -t myapp .'
+                checkout scm
             }
         }
 
-        stage('Free Port 5000') {
+        stage('Install Dependencies') {
             steps {
-                sh '''
-                docker ps -q --filter "publish=5000" | xargs -r docker stop
-                docker ps -aq --filter "publish=5000" | xargs -r docker rm
-                '''
+                sh 'pip3 install flask'
             }
         }
 
-        stage('Remove Old Container Name') {
+        stage('Run Flask App') {
             steps {
-                sh 'docker rm -f mycontainer || true'
-            }
-        }
-
-        stage('Run Container') {
-            steps {
-                sh 'docker run -d -p 5000:5000 --name mycontainer myapp'
+                sh 'nohup python3 app.py > output.log 2>&1 &'
             }
         }
     }
